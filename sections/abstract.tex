@@ -1,8 +1,8 @@
 \begin{abstract}
-Real-time speech systems often rely on compact models, but some user
-queries require a stronger expert. Selective escalation is well studied
-for text, yet speech adds a deployment question: does a duplex-trained
-model expose a reliable competence signal before it commits to a
+Real-time speech systems answer most queries with a local model, but
+some queries require a stronger expert. Selective escalation is well studied
+for text, yet speech adds a deployment question: does a speech model
+expose a reliable competence signal before it commits to a
 response, and does that signal survive distribution and modality shift?
 We compare decode-time uncertainty, verbalized self-assessment, and
 linear probes across layers and matched model controls, using

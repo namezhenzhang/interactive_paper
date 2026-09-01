@@ -164,6 +164,44 @@ Freeze-Omni & frozen + adapter & 0.165 $\rightarrow$ 0.112 (intact) & 0.612 (cap
 \end{tabular}
 \end{table}
 
+\paragraph{Probe $\oplus$ repeat-then-judge fusion.} The restored
+self-evaluation is \emph{additive} with the probe. We stack the
+deployed L22 probe with $\ptrue$-pre asked over the model's own
+transcript (one short text prefill + a 1-token decode per turn;
+logistic stacker fit on the 360 calibration rows, native regime,
+Table~\ref{tab:rtjfusion}). On the internal test split the fusion is
+the first significant AUC lift over the deployed probe
+(0.836$\to$0.862; bootstrap 95\% CI on $\Delta$ excludes zero), and it
+transfers to one external pool (TriviaQA 0.789$\to$0.820); the
+remaining English pools move positively but within CI, and the
+Mandarin reasoning pool is untouched --- there the self-evaluation
+itself carries no signal (AUC 0.586). Contrary to our a-priori
+expectation, the gain tracks where the self-evaluation signal is
+strong, not where the probe is weak; a diagnostic arm asking
+$\ptrue$-pre on the original query text scores within 0.01--0.02 of
+the transcript arm on every pool, so transcription quality is not the
+limiter.
+
+\begin{table}[h]
+\centering\small
+\caption{Probe $\oplus$ repeat-then-judge $\ptrue$-pre fusion (native
+regime, deployed read point). $\Delta$ = fusion $-$ probe, bootstrap
+95\% CI.}
+\label{tab:rtjfusion}
+\begin{tabular}{lccccc}
+\toprule
+pool & $n$ & probe & rtj solo & fusion & $\Delta$ [95\% CI] \\
+\midrule
+internal test & 240 & 0.836 & 0.836 & \textbf{0.862} & $+0.026$ $[+0.004,+0.048]$ \\
+TriviaQA & 250 & 0.789 & 0.761 & \textbf{0.820} & $+0.030$ $[+0.000,+0.062]$ \\
+WebQ & 250 & 0.745 & 0.723 & 0.771 & $+0.026$ $[-0.007,+0.059]$ \\
+Llama-Q & 250 & 0.686 & 0.674 & 0.691 & $+0.006$ $[-0.020,+0.031]$ \\
+SD-QA & 200 & 0.803 & 0.742 & 0.808 & $+0.004$ $[-0.023,+0.032]$ \\
+Reasoning-zh & 202 & 0.640 & 0.586 & 0.618 & $-0.021$ $[-0.076,+0.032]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Real-speech validation.} The matched-pair design rerun on
 200 real human recordings (VoiceBench SD-QA, USA split) replicates all
 three audio-side findings: modality tax (0.400$\to$0.450),
@@ -1328,44 +1366,53 @@ features: AUC 0.843).
 
 \begin{table}[t]
 \centering\small
-\caption{Native-regime probe AUC (features at the deployed
-listen$\to$speak read point). Transferred concurrent probes vs.\ the
-in-regime refit; paired bootstrap $\Delta$ vs.\ the 2{,}310-row
-concurrent probe. The in-regime refit wins on every pool.}
+\caption{Native-regime probe AUC at the deployed listen$\to$speak
+read point, under the OFFICIAL serving configuration (final deployed
+system; the chronological narrative above measured under inherited
+wrapper defaults). The merged refit adds the 2{,}700-row
+public-benchmark expansion (incl.\ 400 Mandarin rows) to the official
+core. En-4 mean .770 vs.\ turn-based .771 --- the English regime cost
+is eliminated; the Mandarin slice restores Reasoning-zh from the
+all-English chance collapse.}
 \label{tab:native-auc}
-\begin{tabular}{lrcccc}
+\begin{tabular}{lrccc}
 \toprule
-pool & $n$ & conc-360 & conc-2310 & \textbf{native} & $\Delta$(nat$-$2310) \\
+pool & $n$ & old-config & official (2{,}542) & \textbf{official$+$exp3 (5{,}228)} \\
 \midrule
-internal test & 240 & .818 & .807 & \textbf{.830} & $+$.023 [$-$.012,$+$.059] \\
-TriviaQA & 250 & .658 & .631 & \textbf{.711} & $+$.080 [$+$.030,$+$.129] \\
-WebQ & 250 & .720 & .693 & \textbf{.736} & $+$.043 [$-$.009,$+$.098] \\
-Llama-QA & 250 & .745 & .639 & \textbf{.757} & $+$.118 [$+$.050,$+$.192] \\
-SD-QA & 200 & .632 & .706 & \textbf{.736} & $+$.029 [$-$.027,$+$.086] \\
-Reasoning-zh & 202 & .578 & .491 & \textbf{.606} & $+$.115 [$+$.051,$+$.180] \\
+internal test & 239 & .830 & \textbf{.846} & .844 \\
+TriviaQA & 250 & .711 & .759 & \textbf{.767} \\
+WebQ & 241 & .736 & .754 & \textbf{.772} \\
+Llama-QA & 245 & .757 & .789 & \textbf{.815} \\
+SD-QA & 200 & .736 & \textbf{.737} & .728 \\
+Reasoning-zh & 202 & .606 & .495 & \textbf{.605} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[t]
 \centering\small
-\caption{Native-regime gated accuracy (8ad remix: native scores select,
-native local outcomes + cached always-arm expert outcomes mix).
-$p$ = permutation vs.\ matched-rate random; escalation rate in
-parentheses. Reasoning-zh: the gate never fires (all-English
-calibration places zh scores below every global threshold).}
+\caption{Native-regime gated accuracy under the official serving
+config and the deployed merged (official$+$exp3) gate (8ad remix:
+native scores select, native local outcomes + cached always-arm
+expert outcomes mix). $p$ = permutation vs.\ matched-rate random;
+escalation rate in parentheses. On frozen test the aggressive tier
+reaches within .012 of the always-escalate ceiling at 48\% of the
+expert cost. Reasoning-zh now separates (AUC .605) but global
+English thresholds still barely fire there --- the per-pool quantile
+remedy applies. AlpacaEval (measured under the 2{,}542-row official
+gate) stays a clean honest negative.}
 \label{tab:native-validity}
 \begin{tabular}{lcccc}
 \toprule
 pool & local & balanced & aggressive & always \\
 \midrule
-frozen test & .371 & .492 (24\%, $p{=}.001$) & .596 (44\%, $p{<}.0001$) & .667 \\
-TriviaQA & .612 & .756 (26\%, $p{<}.0001$) & .872 (64\%, $p{<}.0001$) & .916 \\
-WebQ & .392 & .556 (31\%, $p{=}.024$) & .740 (73\%, $p{=}.008$) & .816 \\
-Llama-QA & .760 & .780 (4\%, $p{=}.031$) & .828 (24\%, $p{=}.0035$) & .912 \\
-SD-QA & .440 & .660 (30\%, $p{<}.0001$) & .830 (70\%, $p{<}.0001$) & .895 \\
-Reasoning-zh & .564 & --- (0\%) & .579 (3\%, n.s.) & .807 \\
-AlpacaEval (VB 1--5) & 3.81 & 3.83 (4\%, n.s.) & 4.12 (24\%, $p{=}.019$) & 4.76 \\
+frozen test & .431 & .556 (23\%, $p{<}.0001$) & \textbf{.657} (48\%, $p{<}.0001$) & .669 \\
+TriviaQA & .568 & .704 (20\%, $p{<}.0001$) & .852 (61\%, $p{<}.0001$) & .916 \\
+WebQ & .411 & .560 (29\%, $p{=}.025$) & .734 (65\%, $p{<}.0001$) & .809 \\
+Llama-QA & .767 & .800 (5\%, $p{=}.0005$) & .865 (29\%, $p{<}.0001$) & .910 \\
+SD-QA & .455 & .620 (27\%, $p{=}.0055$) & .810 (68\%, $p{=}.001$) & .895 \\
+Reasoning-zh & .525 & --- (1\%) & .574 (13\%, n.s.) & .807 \\
+AlpacaEval (VB 1--5) & 3.65 & 3.70 (6\%, n.s.) & 4.07 (37\%, $p{=}.24$) & 4.76 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1373,24 +1420,34 @@ AlpacaEval (VB 1--5) & 3.81 & 3.83 (4\%, n.s.) & 4.12 (24\%, $p{=}.019$) & 4.76 
 \paragraph{Validity.} Re-mixing native local outcomes
 (gpt-judged, deployed decoding) with cached always-arm expert
 outcomes under the native scores
-(Table~\ref{tab:native-validity}): gated accuracy clears matched-rate
-random on five of six pools --- frozen .371$\to$.596 at 44\%
-escalation ($p{<}.0001$; ceiling .667), TriviaQA .612$\to$.872 at
-64\%, WebQ .392$\to$.740, Llama-QA .760$\to$.828, SD-QA
-.440$\to$.830 at 70\% ($p{<}.0001$). External fire rates drift from
-their nominal calib quantiles (aggressive fires 64--73\% vs.\ the
-nominal 50\%) --- thresholds are the fragile part of calibration in a
-third consecutive regime. On Reasoning-zh the gate simply
+(Table~\ref{tab:native-validity}): under the deployed merged gate, gated accuracy clears matched-rate
+random on all five English pools at both deployed tiers --- frozen
+.431$\to$.657 at 48\% escalation ($p{<}.0001$; ceiling .669),
+TriviaQA .568$\to$.852 at 61\%, WebQ .411$\to$.734, Llama-QA
+.767$\to$.865, SD-QA .455$\to$.810 at 68\%. In-regime training
+renormalizes the score distribution, so realized fire rates sit near
+their nominal quantiles on the English pools (the earlier 64--73\%
+drift was a transferred-threshold artifact). On Reasoning-zh the gate simply
 never fires: the all-English calibration places zh scores below every
 global threshold --- the language axis of
 Appendix~\ref{app:duplexval}, now expressed as a fire-rate failure
-rather than an AUC failure. The talker's own local floor is lower
+rather than an AUC failure. Both operating-point failures are fixable
+without labels: thresholding each pool's own recent-score quantile (the
+converged limit of a 100-turn sliding-window quantile tracker --- no
+labels, no pool identity) realizes the nominal fire rate on every pool
+including Reasoning-zh. The talker's own local floor is lower
 in-regime (frozen .483$\to$.371; $\approx$one third decoding
 temperature, $\approx$8 points genuine regime cost), which
 \emph{raises} the gate's marginal value in deployment. The in-regime
 calibration scaling curve mirrors the concurrent one and is not
-saturated at 2{,}310 rows (internal .717$\to$.830, external mean
-.643$\to$.709 from 360$\to$2{,}310).
+saturated: internal .717$\to$.830, external mean .643$\to$.709 from
+360$\to$2{,}310, and a further public-benchmark expansion to 5{,}009
+rows (2{,}300 English across the same seven families + 400 Mandarin:
+MGSM-zh and XCOPA-zh through the same TTS pipeline, source-disjoint
+from Reasoning-zh) continues the $\approx{+}.02$-per-doubling external
+trend to \textbf{.736} while internal stays flat (.834) --- and the
+Mandarin slice moves the axis English data never touched, Reasoning-zh
+.606$\to$.659 ($\Delta$ vs.\ conc-2310 $+$.169 [$+$.085,$+$.251]).
 
 \paragraph{Live validation.} Full live runs on frozen test-240 (real
 raw-audio ASR uplink, real expert, wait paced at one chunk per second)
@@ -1424,6 +1481,30 @@ $\mathrm{act}\ge\tau_a \wedge P(\mathrm{fail})\ge\tau$. The deployed
 demo answers floor turns naturally and reports the act score per
 commit; the failure probe's calibration is untouched.
 
+Live use then sharpened both heads within minutes --- scripted pools
+miss what ten minutes of real conversation finds. (a) Live mic speech
+shifts both act distributions into the calibration gap (real
+request-phrased questions score $\sim$.93, live floor turns $\sim$.37
+vs.\ a standalone-stim maximum of .05): a percentile-anchored
+$\tau_a$ rejected a real question and the talker delivered an empty
+promise. The fix is a gap-center threshold plus \emph{in-context}
+calibration stims --- each utterance dumped as the second turn of a
+carrier conversation, matching how floor acts actually arrive; the
+act read stays perfectly separable (AUC 1.000) under both conditions,
+and in-context stop commands false-fire the \emph{failure} probe on
+57\% at the aggressive tier, so the act term is not optional. (b) The
+native refit had silently dropped the FreshQA real-time extension
+(``the stock price of NVDA today'' scored $P(\mathrm{fail}){=}.29$
+and stayed local); replaying that recipe in-regime restores
+fast-changing heldout fire to .45/.75/1.00 across tiers at zero
+internal-AUC cost (.830$\to$.833), with budgets still quantiled on
+the core mix. (c) A relay's own speak-onset must not re-enter the
+gate (re-fire with an empty uplink); deliveries are guarded to their
+end of turn. The pattern across all three: the mid-layer signals
+separate cleanly every time, and what re-opens at each regime or
+domain shift is calibration coverage and thresholds --- interactive
+use is itself an evaluation modality.
+
 \paragraph{Multi-turn grounding.} A stateless expert uplink breaks on
 follow-ups: ``what is NVDA trading at'' then ``what about Apple'' sends
 only the second utterance, unresolvable in isolation. The probe itself
@@ -1446,7 +1527,27 @@ median 8.5 post-stim); short burst commands (``Stop!'') mostly do not
 naturalness-for-reliability trade the old energy-VAD did not make.
 The escalation machinery is floor-transparent where it should be:
 relays complete under overlapping stims (26/30), and backchannels
-during the thinker wait leave the pending relay intact (8/10). The
+during the thinker wait leave the pending relay intact (8/10).
+The weak stop-command sensitivity decomposed into two causes, found
+in sequence. \emph{Mechanism}: instrumenting the serving loop shows
+the head never samples $\langle$listen$\rangle$ mid-turn --- zero
+attempts across 36 trials --- so its only stop channel is the
+turn-end token. \emph{Configuration}: a user-demanded vanilla control
+(the bare official serving stack, no gate machinery) revealed that
+our loop had inherited the checkpoint wrapper's sampling defaults
+($k{=}100$) rather than the official demo's serving config
+($k{=}20$, a 3-chunk startup listen guard, an assistant-style system
+prompt). Under the official config the turn-end channel is
+\emph{responsive}: a spoken ``stop'' two seconds into an enumeration
+answer ends the turn in 2.0--2.2\,s in 3/3 scripted sessions, versus
+1--13\,s (once running the answer to completion) under the inherited
+defaults --- wide-$k$ sampling dilutes away the rising turn-end
+probability. The deployed demo now serves the official config, and
+the earlier floor-control stop numbers measured under the inherited
+defaults should be read as a lower bound on native responsiveness.
+Two durable lessons: serving-parameter parity with the reference
+stack is part of ``native'', and a vanilla control arm belongs in the
+harness from day one. The
 one true interaction: a \emph{new question} during the wait derails
 the pending relay 7/10 times --- the head simply moves on --- which is
 the empirical case for aborting the in-flight expert call on user
