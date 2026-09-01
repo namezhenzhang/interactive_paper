@@ -35,11 +35,13 @@ of synthetic dialogue for SyncLLM, millions of hours of audio for
 Moshi \citep{veluri2024syncllm,defossez2024moshi}) and risks eroding
 the backbone's language ability, which is the stated motivation for
 frozen-backbone designs \citep{wang2024freezeomni,yu2024salmonnomni}.
-Second, the interface is wrong for escalation: a control token decides
-when the model should speak, not whether its answer will be right, and
-it arrives as a binary action at the moment of commitment. It offers
-no calibrated score to threshold at a fixed expert budget and no lead
-time to launch the expert call. What remains unknown is whether the
+Second, the interface is wrong for escalation: a speak token decides
+when the model may talk, not whether its answer will be right, and it
+arrives as a binary action at the moment of commitment. Even when the
+token triggers a reasoning step instead of speech
+\citep{huang2026duplexomni}, the decision is still a trained binary
+action: it offers no calibrated score to threshold at a fixed expert
+budget, and the policy cannot change without retraining. What remains unknown is whether the
 escalation decision needs training at all: whether a frozen
 duplex-trained checkpoint already carries a competence signal that can
 be read before response commitment. Text-probe results make this
@@ -104,10 +106,12 @@ This study makes three contributions:
   first output token.
 \item \textbf{The read is sufficient to drive escalation.} In the
   live loop it raises deployed-channel accuracy from 42.2\% to 63.3\%
-  at 57\% escalation and beats matched-rate random escalation at every
-  tier. With its layer and features frozen, the gate improves all five
-  external speech-QA benchmarks over always-local operation, although
-  selectivity over random is limited on some pools.
+  at 57\% escalation, beats matched-rate random escalation at every
+  tier, and dominates the model's own built-in reasoning mode on both
+  accuracy and latency (Appendix~\ref{app:gatedetail}). With its layer
+  and features frozen, the gate improves all five external speech-QA
+  benchmarks over always-local operation, although selectivity over
+  random is limited on some pools.
 \end{enumerate}
 
 The claim is therefore about readout rather than mechanism: the model

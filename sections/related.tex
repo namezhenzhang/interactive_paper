@@ -52,38 +52,40 @@ End-to-end spoken dialogue includes native duplex models
 bayling2026duplex}, streaming omni models
 \citep{xu2025qwen25omni,openbmb2026minicpmo}, frozen-backbone adapters
 \citep{wang2024freezeomni}, and audio fine-tunes
-\citep{chu2024qwen2audio}. Interaction control in these systems has
-moved through two designs. The first trains control into the output
-stream, as state, idle, synchronization, or interruption tokens
+\citep{chu2024qwen2audio}. Most control work in these systems concerns
+the floor: state, idle, synchronization, or interruption tokens
 \citep{wang2024fsm,zhang2024duplex,veluri2024syncllm,
-ma2024lslm,fu2024vita,yu2024salmonnomni} or structured action channels
-\citep{zhang2026duplexsla}. This design carries the costs noted in
-Section~\ref{sec:intro}: duplex-specific training data, pressure on
-the backbone's language ability, and in some deployments two model
-instances running at once with error propagation between them
-\citep{fu2024vita,yu2024salmonnomni}. Reducing this training cost is
-itself a research goal \citep{xu2024minimal}, and benchmark
-evaluations show that trained turn-taking control remains unreliable
-across models \citep{lin2025fdb}. The second design moves control
-outside the weights: small classifier heads over a frozen or lightly
-adapted backbone predict listen/speak states
-\citep{wang2024freezeomni,chen2025minmo,liao2025flexduo}.
-MiniCPM-o~4.5 likewise predicts a listen/speak state before content
-generation \citep{openbmb2026minicpmo}. Both designs output a discrete
-floor action for the next instant; neither carries a calibrated
-per-turn score of whether the coming answer will be correct. Our probe
-extends the externalization one step further: it reads the frozen
-hidden state and returns a continuous competence score before the
-model commits to a response.
+ma2024lslm,fu2024vita,yu2024salmonnomni}, structured action channels
+\citep{zhang2026duplexsla}, or classifier heads over a frozen or
+lightly adapted backbone
+\citep{wang2024freezeomni,chen2025minmo,liao2025flexduo}. Training
+this control is costly enough that reducing the cost is itself a
+research goal \citep{xu2024minimal}, and trained turn-taking remains
+unreliable across models \citep{lin2025fdb}. These mechanisms decide
+when the model may speak; even the most recent native design adds only
+a few turn tokens to the vocabulary and answers every turn locally,
+whatever the model's competence on that turn \citep{bayling2026duplex}.
 
-Recent systems also connect a duplex interface to a stronger resource.
-MoshiRAG triggers asynchronous retrieval from the model's emerging
-output and returns knowledge to the local model
-\citep{chien2026moshirag}. DuplexOmni uses a trained think-control
-token to hand work to a separate reasoning layer
-\citep{huang2026duplexomni}. These systems demonstrate that a live
-handoff is possible, but they do not evaluate a competence score read
-from a frozen duplex checkpoint before generation.
+The direct neighbors of our gate are trained think triggers.
+DuplexOmni emits a think-control token at the end of a user utterance
+to hand work to a separate reasoning layer \citep{huang2026duplexomni};
+chronological thinking interleaves reasoning with the speech stream
+\citep{chrono2026thinking}; MiniCPM-o~4.5 ships a built-in reasoning
+mode \citep{openbmb2026minicpmo}; MoshiRAG triggers asynchronous
+retrieval from the model's emerging output \citep{chien2026moshirag}.
+These systems show that a live handoff is possible. But the trigger is
+trained into the weights from purpose-built duplex data, so changing
+the policy or the downstream resource means retraining; it is a binary
+action with no calibrated score, so the escalation rate cannot be set
+to a call budget; and the trained policies are hard to reuse or
+compare, because released artifacts often include the training recipe
+but not the trained checkpoint \citep{huang2026duplexomni}. None of
+these works evaluates a competence score read from a frozen checkpoint
+before generation. Our probe replaces the trained trigger with such a
+read: it needs no training of the speech model, exposes a
+thresholdable score, and on our target model it dominates the built-in
+reasoning mode on both accuracy and latency
+(Appendix~\ref{app:gatedetail}).
 
 \paragraph{Positioning.}
 Prior work therefore establishes three ingredients separately:
