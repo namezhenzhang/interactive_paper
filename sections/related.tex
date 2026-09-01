@@ -20,22 +20,24 @@ remains reliable after duplex speech training or whether a probe
 calibrated on text transfers to speech-input states.
 
 \paragraph{Selective routing.}
+Text routing splits into two families by where the decision lives.
+In the first, the decision is read from outside the generator:
 HybridLLM \citep{ding2024hybrid}, RouteLLM
 \citep{ong2024routellm}, and query-side routers
 \citep{hybridserve2025,hu2024routerbench,llmrouterbench2026} choose a
 model for a complete text query from query features or preference
-data. FrugalGPT organizes cascades that can score an earlier model's
+data; FrugalGPT organizes cascades that can score an earlier model's
 response \citep{chen2023frugalgpt}, while AutoMix verifies a drafted
 answer before escalating \citep{aggarwal2024automix}. Closest to our
 signal, recent methods read pre-generation activations or fit linear
 success probes on frozen states
 \citep{varshney2026llmrouter,lugoloobi2025difficulty,
-lugoloobi2026failures}. A second family trains the decision into the
-generator: Toolformer and Self-RAG learn tool or reflection tokens
-\citep{schick2023toolformer,asai2024selfrag}; Co-LLM and CITER learn
-token-level deferral \citep{shen2024collaborative,zheng2025citer}; and
-pause, thought, or think/no-think tokens allocate more internal
-computation
+lugoloobi2026failures}. In the second family, the decision is trained
+into the generator: Toolformer and Self-RAG learn tool or reflection
+tokens \citep{schick2023toolformer,asai2024selfrag}; Co-LLM and CITER
+learn token-level deferral
+\citep{shen2024collaborative,zheng2025citer}; and pause, thought, or
+think/no-think tokens allocate more internal computation
 \citep{goyal2024pause,zelikman2024quietstar,yang2025qwen3,
 guo2025deepseekr1}. Learning-to-defer and early-exit methods make
 related decisions within a model
@@ -50,15 +52,29 @@ End-to-end spoken dialogue includes native duplex models
 bayling2026duplex}, streaming omni models
 \citep{xu2025qwen25omni,openbmb2026minicpmo}, frozen-backbone adapters
 \citep{wang2024freezeomni}, and audio fine-tunes
-\citep{chu2024qwen2audio}. Their control interfaces decide when to
-listen or speak through state, idle, synchronization, or interruption
-tokens \citep{wang2024fsm,zhang2024duplex,veluri2024syncllm,
-ma2024lslm,fu2024vita,yu2024salmonnomni}, structured action channels
-\citep{zhang2026duplexsla}, or small classifier heads
-\citep{liao2025flexduo,chen2025minmo}. MiniCPM-o~4.5 likewise predicts
-a listen/speak state before content generation
-\citep{openbmb2026minicpmo}. These policies answer \emph{when} the
-model should speak, not whether its content is likely to be correct.
+\citep{chu2024qwen2audio}. Interaction control in these systems has
+moved through two designs. The first trains control into the output
+stream, as state, idle, synchronization, or interruption tokens
+\citep{wang2024fsm,zhang2024duplex,veluri2024syncllm,
+ma2024lslm,fu2024vita,yu2024salmonnomni} or structured action channels
+\citep{zhang2026duplexsla}. This design carries the costs noted in
+Section~\ref{sec:intro}: duplex-specific training data, pressure on
+the backbone's language ability, and in some deployments two model
+instances running at once with error propagation between them
+\citep{fu2024vita,yu2024salmonnomni}. Reducing this training cost is
+itself a research goal \citep{xu2024minimal}, and benchmark
+evaluations show that trained turn-taking control remains unreliable
+across models \citep{lin2025fdb}. The second design moves control
+outside the weights: small classifier heads over a frozen or lightly
+adapted backbone predict listen/speak states
+\citep{wang2024freezeomni,chen2025minmo,liao2025flexduo}.
+MiniCPM-o~4.5 likewise predicts a listen/speak state before content
+generation \citep{openbmb2026minicpmo}. Both designs output a discrete
+floor action for the next instant; neither carries a calibrated
+per-turn score of whether the coming answer will be correct. Our probe
+extends the externalization one step further: it reads the frozen
+hidden state and returns a continuous competence score before the
+model commits to a response.
 
 Recent systems also connect a duplex interface to a stronger resource.
 MoshiRAG triggers asynchronous retrieval from the model's emerging
