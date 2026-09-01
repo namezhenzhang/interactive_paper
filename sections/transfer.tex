@@ -43,12 +43,12 @@ Appendices~\ref{app:fixedthr}--\ref{app:transferdetail}.}
 & TriviaQA & WebQ & Llama Q. & SD-QA & Reason.\ zh & avg & $\Delta$ \\
 \midrule
 \multicolumn{8}{l}{\emph{live post-relay view (audio input, text output)}} \\
-always-local          & 66.4 & 57.2 & 84.0 & 51.5 & 58.9 & 63.6 & --- \\
-\;+ gate @15\%        & 73.2 & 62.8 & 90.4 & 60.0 & 65.3 & 70.3 & +6.7 \\
-\;+ gate @30\%        & 80.0 & 68.0 & 90.4 & 72.0 & 71.3 & 76.3 & +12.7 \\
-\;\textbf{+ gate @50\%} & \textbf{86.0} & \textbf{73.2} & \textbf{94.8} & \textbf{79.5} & \textbf{77.2} & \textbf{82.1} & \textbf{+18.5} \\
-always-escalate (measured) & 88.0 & 80.8 & 93.6 & 88.5 & 83.7 & 86.9 & +23.3 \\
-always-expert (gold-text ceiling) & 96.8 & 86.4 & 92.8 & 93.0 & 87.1 & 91.2 & +27.6 \\
+always-local          & 66.4 & 56.8 & 83.6 & 51.5 & 58.9 & 63.4 & --- \\
+\;+ gate @15\%        & 73.2 & 62.8 & 90.4 & 60.0 & 65.3 & 70.3 & +6.9 \\
+\;+ gate @30\%        & 80.0 & 68.0 & 90.4 & 72.0 & 71.3 & 76.3 & +12.9 \\
+\;\textbf{+ gate @50\%} & \textbf{86.0} & \textbf{73.2} & \textbf{94.8} & \textbf{79.5} & \textbf{77.2} & \textbf{82.1} & \textbf{+18.7} \\
+always-escalate (measured) & 88.0 & 80.8 & 93.6 & 88.5 & 83.7 & 86.9 & +23.5 \\
+always-expert (gold-text ceiling) & 96.8 & 86.4 & 92.8 & 93.0 & 87.1 & 91.2 & +27.8 \\
 \midrule
 \multicolumn{8}{l}{\emph{second family: NemotronLabs-VoiceChat-11B (offline re-mix, official judges)}} \\
 always-local          & 35.6 & 37.6 & 70.5 & 31.0 & --- & 43.7 & --- \\
@@ -70,7 +70,7 @@ AUC ranges from 0.683 to 0.806 across the five QA pools, with a mean of
 0.771 (Table~\ref{tab:transfer}). The gate also improves
 deployed-channel accuracy over always-local operation on every QA
 benchmark and at every budget; at 50\% escalation, mean accuracy rises
-from 63.6\% to 82.1\%. These gains establish system utility but do not
+from 63.4\% to 82.1\%. These gains establish system utility but do not
 by themselves establish selectivity, because random escalation also
 adds expert answers.
 
@@ -95,7 +95,7 @@ missed by the expert
 open-ended failures do not present the retrieval-failure pattern the
 probe reads. On the second duplex family, which has more expert
 headroom on these pools, the same recipe beats matched-rate random on
-all five evaluated pools, including AlpacaEval ($p\le.0004$). Thus
+all five evaluated pools, including AlpacaEval ($p\le.0003$). Thus
 external utility depends on both the quality of the competence ranking
 and whether the selected failures are repairable by the expert
 (Appendices~\ref{app:nvda},~\ref{app:fixedthr},

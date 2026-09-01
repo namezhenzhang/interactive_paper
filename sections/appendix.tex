@@ -98,7 +98,7 @@ severe but local, omni-streaming damage mild but diffuse.
 \begin{table}[h]
 \centering\small
 \caption{LOPO transfer (AUC, held-out pool) of the final-layer
-last-token probe, Qwen2.5-7B family, label-coverage matched.}
+last-token probe, Qwen2.5-7B family.}
 \label{tab:lopo}
 \begin{tabular}{lcccc}
 \toprule
@@ -234,9 +234,10 @@ the exceptions. In the concurrent regime, the same 12{,}288-d feature
 set is refit in-regime on 360 rows for the loop of
 Table~\ref{tab:conclive} and on the full 2{,}310-row mix to measure the
 effect of calibration scale (Appendix~\ref{app:duplexval}). In the
-native regime, the same feature set is refit on 2{,}310 rows collected
-at the native listen$\to$speak read point
-(Appendix~\ref{app:native}).
+native regime, the same feature set is refit at the native
+listen$\to$speak read point; the deployed native gate is the
+5{,}228-row official-configuration merge of
+Table~\ref{tab:native-auc} (Appendix~\ref{app:native}).
 \emph{Selection history.} L22 and the three-position feature set were
 chosen on internal calibration-split cross-validation before any
 external benchmark was scored (the 8-position $\times$ layer sweep and
@@ -265,7 +266,7 @@ mid-band at L30--34 (eot-last AUC 0.714 vs.\ 0.693/0.682 at the
 endpoints); stacking the same three positions lifts OOF
 0.714$\to$0.761$\to$0.790; the frozen-methodology probe transfers to the
 external pools at AUC 0.781/0.793/0.754/0.701 --- the deployed-probe band
-reached with a quarter of the calibration data. Boundary notes: the
+reached from a 600-query calibration set. Boundary notes: the
 backbone is much weaker at knowledge retrieval (striviaqa local 0.32
 vs.\ MiniCPM 0.62, same judge) and English-only (the cross-lingual pool
 has no analog). The live-loop port and the trained-checkpoint ablation
@@ -907,7 +908,7 @@ relay speech            & 0.55 [0.27,\,0.82] & 10/10 & 10/10 \\
 backchannels (lexicon bursts) vs.\ genuine barge-ins (pool queries
 spoken over the talker), by the phase the overlap lands in; the last
 three phases exist only under escalation. Interrupt latency
-p50 1.39--1.42\,s from overlap onset in every phase; escalated-turn
+p50 1.39--1.40\,s from overlap onset in every phase; escalated-turn
 aborts discard the pending expert answer and the barge-in speech
 becomes the next turn.}
 \label{tab:floor}
@@ -931,8 +932,7 @@ agreement only to 75\%. The information, however, survives in the
 state: refitting the \emph{same} 12288-d linear read on 360
 calibration queries collected in-regime reaches \textbf{0.818}
 [0.761,\,0.871] on the held-out 240 (calibration OOF 0.775) --- more
-than half the gap recovered at a quarter of the deployed probe's
-calibration scale. The mid-layer competence direction persists under
+than half the gap recovered from those 360 in-regime rows alone. The mid-layer competence direction persists under
 concurrent listen/speak; unlike every earlier shift (modality,
 external pools, talker-on), calibration must follow the regime.
 Run-to-run replication of the concurrent read correlates at 0.895.
@@ -1324,7 +1324,7 @@ for MiniCPM-o~4.5, with per-model pins for comparison backbones; all
 experiments run on single-H100 instances. Probe artifacts (weights,
 feature configuration, per-pool label-free thresholds), the judge
 prompt above, all trace files, and the per-experiment execution log ---
-including per-run GPU and API spend, on the order of \$500 total ---
+including per-run GPU and API spend, on the order of \$800 total ---
 ship in the project repository, released upon publication.
 
 \section{The native full-duplex regime}
@@ -1432,14 +1432,18 @@ never fires: the all-English calibration places zh scores below every
 global threshold --- the language axis of
 Appendix~\ref{app:duplexval}, now expressed as a fire-rate failure
 rather than an AUC failure. Both operating-point failures are fixable
-without labels: thresholding each pool's own recent-score quantile (the
-converged limit of a 100-turn sliding-window quantile tracker --- no
-labels, no pool identity) realizes the nominal fire rate on every pool
-including Reasoning-zh. The talker's own local floor is lower
-in-regime (frozen .483$\to$.371; $\approx$one third decoding
-temperature, $\approx$8 points genuine regime cost), which
+without labels: thresholding each pool's own score quantile realizes
+the nominal fire rate exactly on every pool including Reasoning-zh,
+and its online form --- a 100-turn sliding-window quantile tracker,
+no labels, no pool identity --- converges within $\pm$.06 of nominal
+on the English pools and to .19/.27/.62 on Reasoning-zh. The talker's own local floor is lower
+in-regime (frozen .483$\to$.431 under the official serving
+configuration; the inherited-defaults harness measured .371, and the
+$\approx$one-third-temperature / $\approx$8-point decomposition
+belongs to that older figure), which
 \emph{raises} the gate's marginal value in deployment. The in-regime
-calibration scaling curve mirrors the concurrent one and is not
+calibration scaling curve (measured under the default serving
+configuration) mirrors the concurrent one and is not
 saturated: internal .717$\to$.830, external mean .643$\to$.709 from
 360$\to$2{,}310, and a further public-benchmark expansion to 5{,}009
 rows (2{,}300 English across the same seven families + 400 Mandarin:
@@ -1447,7 +1451,9 @@ MGSM-zh and XCOPA-zh through the same TTS pipeline, source-disjoint
 from Reasoning-zh) continues the $\approx{+}.02$-per-doubling external
 trend to \textbf{.736} while internal stays flat (.834) --- and the
 Mandarin slice moves the axis English data never touched, Reasoning-zh
-.606$\to$.659 ($\Delta$ vs.\ conc-2310 $+$.169 [$+$.085,$+$.251]).
+.606$\to$.659 ($\Delta$ vs.\ conc-2310 $+$.169 [$+$.085,$+$.251]; the
+deployed official-configuration merge reads the same pool at .605,
+Table~\ref{tab:native-auc}).
 
 \paragraph{Live validation.} Full live runs on frozen test-240 (real
 raw-audio ASR uplink, real expert, wait paced at one chunk per second)

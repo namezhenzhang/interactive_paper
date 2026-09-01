@@ -43,7 +43,7 @@ $\mathbf{42.2\% \to 52.8\% \to 59.2\% \to 63.3\%}$ at 0/14/31/57\% escalation,
 every tier's gain significant (paired bootstrap;
 Figure~\ref{fig:dualview}). More importantly, it exceeds the
 matched-rate random reference at every tier, by
-7.2--9.5 points in the deployed view and by 5.4--8.4 points in the
+7.2--9.4 points in the deployed view and by 5.3--8.3 points in the
 channel-controlled view
 (Figure~\ref{fig:dualview}). A measured always-escalate arm reaches
 66.5\%. The small remaining gain from 57\% to 100\% escalation is not
@@ -61,9 +61,14 @@ interleave is less stable and requires an in-regime refit; its external
 results remain exploratory (Appendix~\ref{app:duplexval}). Under the
 model's native full-duplex head, the read moves to the head's own
 listen$\to$speak commit point. Refitting the same features in that
-regime yields AUC 0.830 internally and 0.709 across the external QA
-pools. A native outcome re-mix beats matched-rate random on five of six
-pools. A full native live run on the internal 240 queries improves
+regime, on a widened 5{,}228-row calibration merge under the official
+serving configuration, yields AUC 0.844 internally and 0.770 across
+the four English external QA pools (0.605 on the Mandarin pool). A
+native outcome re-mix beats matched-rate random on all five English
+pools at both deployed tiers; the Mandarin pool separates on AUC but
+the global English thresholds rarely fire there. A full native live
+run on the internal 240 queries, under the earlier inherited serving
+configuration, improves
 accuracy from 0.371 to 0.537 at 45\% escalation, below the 0.596 re-mix
 prediction because relaying the returned answer is lossy. These checks
 support the ranking beyond the primary turn-based loop, but they also
