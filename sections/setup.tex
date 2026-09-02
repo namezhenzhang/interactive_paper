@@ -82,3 +82,18 @@ and the returned answer is injected as context for the talker to
 relay. The expert request runs asynchronously. Partial-query
 prefetch, expert reasoning effort, and injection controls are in
 Appendix~\ref{app:livedetail}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fair_dualview}
+  \caption{Live escalation on the internal test set (speakable
+  subset, $n{=}218$). Blue: deployed-channel accuracy, where the
+  expert answers from the talker's own transcript. Green: the same
+  sessions re-scored with the expert answering the reference
+  transcript, which factors out the relay channel. Each curve has its
+  own matched-rate random reference (dashed, same floor and
+  endpoint). Selection beats random in both, by 7.2--9.4 points
+  deployed and 5.3--8.3 points channel-controlled; the gap between
+  the curves is the cost of the relay channel.}
+  \label{fig:dualview}
+\end{figure}

@@ -641,21 +641,7 @@ tested, query-surface routers included (fire rate 18\% vs.\ trap's
 check behind the pre-answer gate.
 
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=.65\linewidth]{fair_dualview}
-  \caption{Live dual-view tradeoff ($n{=}218$ speakable subset). Blue:
-  measured deployed-channel accuracy of the live system
-  (paired-bootstrap CIs). Green: the channel-controlled counterfactual --- same sessions,
-  escalated rows re-scored with gold-text expert answers. Each view is
-  plotted against \emph{its own} matched-rate random reference (faint
-  dashed, same floor, each view's own 100\% endpoint): selection beats
-  random within both views at every arm, by 0.072--0.095 deployed and
-  0.054--0.084 gold. The vertical view-to-view gap is the
-  speech-channel price; the floor-to-floor gap to offline operation is
-  the audio + streaming-answer tax.}
-  \label{fig:dualview}
-\end{figure}
+% fair_dualview now appears in the main text (Section 5, fig:dualview).
 
 \paragraph{Full live tables.} Table~\ref{tab:live} (both scoring views,
 speakable subset and full pool) and Table~\ref{tab:latency} (measured
@@ -1349,7 +1335,15 @@ question end.
 \paragraph{Recalibration.} The full 2{,}310-row calibration mix was
 re-collected in this regime (fresh duplex session per query, features
 at the deployed read point, labels unchanged) and the same 12{,}288-d
-linear read refit. On native test-240 features the in-regime probe
+linear read refit. (The final deployed gate goes one step further and
+also re-labels: each training row's label is the judged outcome of
+the native answer produced in the same duplex session the features
+were read from, under the deployed sampling, rather than a separate
+deterministic turn-based answer. The two label sets agree on 80.8\%
+of the 5{,}228 rows; the native failure rate is higher, .541
+vs.\ .463, mostly turn-based-correct questions the sampled native
+answer gets wrong. Ranking is unchanged within noise,
+Table~\ref{tab:native-auc}.) On native test-240 features the in-regime probe
 reaches AUC \textbf{0.830} [0.777,\,0.878] (transferred concurrent
 probes: 0.807--0.818; turn-based reference 0.877). Externally the
 in-regime refit beats both transferred probes on all five pools ---
@@ -1373,18 +1367,30 @@ wrapper defaults). The merged refit adds the 2{,}700-row
 public-benchmark expansion (incl.\ 400 Mandarin rows) to the official
 core. En-4 mean .770 vs.\ turn-based .771 --- the English regime cost
 is eliminated; the Mandarin slice restores Reasoning-zh from the
-all-English chance collapse.}
+all-English chance collapse. The last column is the deployed gate:
+same 5{,}228 features, but every training label is the judged
+outcome of the \emph{same} native-duplex answer the features were
+read from (instead of a separate deterministic turn-based answer).
+Label source is a wash for ranking (En-4 mean .771 either way; the
+paired bootstrap crosses zero on six of seven pools, TriviaQA
+$+$.035 [$+$.006,\,$+$.065] being the exception), so the deployed
+gate uses the in-regime definition. Internal test is scored against both the
+earlier harness labels and the native-judged labels of the same
+240 queries.}
 \label{tab:native-auc}
-\begin{tabular}{lrccc}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lrcccc}
 \toprule
-pool & $n$ & old-config & official (2{,}542) & \textbf{official$+$exp3 (5{,}228)} \\
+pool & $n$ & old cfg & official (2{,}542) & $+$exp3 (5{,}228) & \textbf{$+$native lbl.\ (deployed)} \\
 \midrule
-internal test & 239 & .830 & \textbf{.846} & .844 \\
-TriviaQA & 250 & .711 & .759 & \textbf{.767} \\
-WebQ & 241 & .736 & .754 & \textbf{.772} \\
-Llama-QA & 245 & .757 & .789 & \textbf{.815} \\
-SD-QA & 200 & .736 & \textbf{.737} & .728 \\
-Reasoning-zh & 202 & .606 & .495 & \textbf{.605} \\
+internal (harness lbl.) & 239 & .830 & \textbf{.846} & .844 & .843 \\
+internal (native lbl.) & 239 & --- & --- & .878 & .876 \\
+TriviaQA & 250 & .711 & .759 & .767 & \textbf{.802} \\
+WebQ & 241 & .736 & .754 & .772 & \textbf{.777} \\
+Llama-QA & 245 & .757 & .789 & \textbf{.815} & .807 \\
+SD-QA & 200 & .736 & \textbf{.737} & .728 & .700 \\
+Reasoning-zh & 202 & .606 & .495 & .605 & \textbf{.621} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1395,23 +1401,27 @@ Reasoning-zh & 202 & .606 & .495 & \textbf{.605} \\
 config and the deployed merged (official$+$exp3) gate (8ad remix:
 native scores select, native local outcomes + cached always-arm
 expert outcomes mix). $p$ = permutation vs.\ matched-rate random;
-escalation rate in parentheses. On frozen test the aggressive tier
-reaches within .012 of the always-escalate ceiling at 48\% of the
-expert cost. Reasoning-zh now separates (AUC .605) but global
-English thresholds still barely fire there --- the per-pool quantile
-remedy applies. AlpacaEval (measured under the 2{,}542-row official
-gate) stays a clean honest negative.}
+escalation rate in parentheses. Thresholds are the deployed
+per-language operating points: tier quantiles of the training-set
+out-of-fold scores, computed separately for the English and the
+Mandarin training rows (no evaluation pool is consulted); the
+Mandarin pool uses the zh thresholds. On frozen test the aggressive
+tier reaches the always-escalate ceiling at 49\% of the expert cost.
+Reasoning-zh, which the global English thresholds never reached
+(1--2\% fire), now fires at its nominal rates and beats matched-rate
+random at the two lower tiers. AlpacaEval (measured under the
+2{,}542-row official gate) stays a clean honest negative.}
 \label{tab:native-validity}
 \begin{tabular}{lcccc}
 \toprule
 pool & local & balanced & aggressive & always \\
 \midrule
-frozen test & .431 & .556 (23\%, $p{<}.0001$) & \textbf{.657} (48\%, $p{<}.0001$) & .669 \\
-TriviaQA & .568 & .704 (20\%, $p{<}.0001$) & .852 (61\%, $p{<}.0001$) & .916 \\
-WebQ & .411 & .560 (29\%, $p{=}.025$) & .734 (65\%, $p{<}.0001$) & .809 \\
-Llama-QA & .767 & .800 (5\%, $p{=}.0005$) & .865 (29\%, $p{<}.0001$) & .910 \\
-SD-QA & .455 & .620 (27\%, $p{=}.0055$) & .810 (68\%, $p{=}.001$) & .895 \\
-Reasoning-zh & .525 & --- (1\%) & .574 (13\%, n.s.) & .807 \\
+frozen test & .431 & .565 (27\%, $p{=}.0005$) & \textbf{.669} (49\%, $p{<}.0001$) & .669 \\
+TriviaQA & .568 & .684 (20\%, $p{=}.0005$) & .852 (54\%, $p{<}.0001$) & .916 \\
+WebQ & .411 & .527 (22\%, $p{=}.045$) & .680 (58\%, $p{=}.020$) & .809 \\
+Llama-QA & .767 & .792 (4\%, $p{=}.002$) & .841 (16\%, $p{<}.0001$) & .910 \\
+SD-QA & .455 & .605 (24\%, $p{=}.0035$) & .775 (61\%, $p{=}.003$) & .895 \\
+Reasoning-zh (zh thr.) & .525 & .658 (34\%, $p{=}.023$) & .713 (55\%, $p{=}.066$) & .807 \\
 AlpacaEval (VB 1--5) & 3.65 & 3.70 (6\%, n.s.) & 4.07 (37\%, $p{=}.24$) & 4.76 \\
 \bottomrule
 \end{tabular}
@@ -1420,23 +1430,99 @@ AlpacaEval (VB 1--5) & 3.65 & 3.70 (6\%, n.s.) & 4.07 (37\%, $p{=}.24$) & 4.76 \
 \paragraph{Validity.} Re-mixing native local outcomes
 (gpt-judged, deployed decoding) with cached always-arm expert
 outcomes under the native scores
-(Table~\ref{tab:native-validity}): under the deployed merged gate, gated accuracy clears matched-rate
+(Table~\ref{tab:native-validity}): under the deployed gate, gated accuracy clears matched-rate
 random on all five English pools at both deployed tiers --- frozen
-.431$\to$.657 at 48\% escalation ($p{<}.0001$; ceiling .669),
-TriviaQA .568$\to$.852 at 61\%, WebQ .411$\to$.734, Llama-QA
-.767$\to$.865, SD-QA .455$\to$.810 at 68\%. In-regime training
+.431$\to$.669 at 49\% escalation ($p{<}.0001$; ceiling .669),
+TriviaQA .568$\to$.852 at 54\%, WebQ .411$\to$.680, Llama-QA
+.767$\to$.841, SD-QA .455$\to$.775 at 61\%. In-regime training
 renormalizes the score distribution, so realized fire rates sit near
 their nominal quantiles on the English pools (the earlier 64--73\%
-drift was a transferred-threshold artifact). On Reasoning-zh the gate simply
-never fires: the all-English calibration places zh scores below every
-global threshold --- the language axis of
-Appendix~\ref{app:duplexval}, now expressed as a fire-rate failure
-rather than an AUC failure. Both operating-point failures are fixable
-without labels: thresholding each pool's own score quantile realizes
-the nominal fire rate exactly on every pool including Reasoning-zh,
-and its online form --- a 100-turn sliding-window quantile tracker,
-no labels, no pool identity --- converges within $\pm$.06 of nominal
-on the English pools and to .19/.27/.62 on Reasoning-zh. The talker's own local floor is lower
+drift was a transferred-threshold artifact). Reasoning-zh is an
+operating-point problem before it is a ranking problem: a single
+global threshold, quantiled on a 92\%-English training mix, places
+the zh score distribution below every tier (1--2\% fire at
+``balanced''), the language axis of Appendix~\ref{app:duplexval}
+expressed as a fire-rate failure. The deployed fix needs no
+evaluation data: tier thresholds are quantiled on the training-set
+out-of-fold scores \emph{per language} (en/zh), and the session
+selects the language's thresholds. The zh thresholds derived from
+the 400 Mandarin training rows alone land Reasoning-zh at 17/34/55\%
+fire (nominal 15/30/50) and lift it from .525 to .609/.658/.713,
+beating matched-rate random at the two lower tiers ($p{=}.0065$,
+$p{=}.023$). This static per-language point is only as good as the
+match between the language slice's family mix and the deployment
+stream: when the Mandarin training slice is widened from 400 to
+1{,}900 rows with higher-failure families (below), its balanced
+quantile moves from .39 to .75 and fires 5\% on Reasoning-zh; a
+family-balanced quantile recovers 13/24/38\%. The composition-free
+alternative --- each pool's own score quantile, or its online form, a
+100-turn sliding-window tracker with no labels and no pool identity
+--- realizes nominal rates on every pool and converges within
+$\pm$.06 of nominal on the English pools.
+
+\paragraph{Is the Mandarin gap a language gap?} No: it is a task-type
+gap. A targeted 1{,}500-row Mandarin expansion (Chinese SimpleQA
+long-tail facts, C-Eval and CMMLU knowledge MC, the remaining
+XCOPA-zh; public benchmarks, deduplicated against every pool, judged
+on the native answers; native failure .578) does not move
+Reasoning-zh when added to the calibration mix (.621$\to$.627,
+paired $+$.006 [$-$.026,\,$+$.040]; internal test $-$.010, English
+external $+$.006), and Mandarin-only training is worse everywhere
+(Reasoning-zh .591, internal .758). Read the other way, the deployed
+gate scores these 1{,}500 unseen Mandarin questions at AUC
+\textbf{.811} [.789,\,.833] (long-tail .719, C-Eval .730, CMMLU .642,
+causal .693) --- the same band as the English pools. What the probe
+does not read is multi-step reasoning, which is what Reasoning-QA
+is; the ``.62 on Mandarin'' number is that gap wearing a language
+label. The expansion is therefore not deployed and serves as a second,
+larger Mandarin held-out pool. (A side observation from the same
+dump: on the causal-commonsense family 34\% of the native answers
+switch to English while remaining judged adequate --- a
+language-consistency defect the adequacy label does not see.)
+
+\paragraph{Reasoning coverage and in-context rows: the read point
+saturates.} Two further targeted sets test the two remaining
+hypotheses. A bilingual multi-step reasoning pool (1{,}319 rows:
+LogiQA and LogiQA-zh, MATH levels 4--5 without LaTeX, StrategyQA,
+BBH date/deduction/causal/temporal/navigation, CMATH grades 4--6,
+Ape210K; native failure .595) leaves Reasoning-zh unchanged when
+added to calibration (.621$\to$.620, paired $-$.002
+[$-$.039,\,$+$.038]) and moves nothing else beyond noise. The reason
+is visible inside the pool itself: cross-validated AUC on the
+reasoning families is only .61--.76 (overall .736 [.708,\,.762]),
+against .77--.82 for fact, knowledge-MC, and causal families. Whether
+a multi-step chain will come out right is weakly encoded in the
+listen$\to$speak commit state, which precedes the chain; the .62 on
+Reasoning-zh is that ceiling, not a coverage gap. Second, the
+calibration questions re-collected as the \emph{second} turn of a
+session (a spoken carrier question and its answer first) fail more
+often (.517$\to$.620; 26\% of labels flip) while the deployed gate
+scores them \emph{lower} (mean shift $-$.097): at the balanced tier
+the in-context fire rate halves (.252$\to$.115) although ranking
+holds (AUC .861 [.815,\,.896]). Adding these rows to training does
+not change AUC either; the defect is the operating point, and the
+deployed demo therefore thresholds on a sliding-window quantile of
+the session's own recent onset scores (100-score window, static
+per-language threshold until 20 scores exist), which follows such
+shifts without labels or pool identity. After a label-definition fix
+and three targeted expansions ($\approx$4{,}000 rows), external
+ranking sits where the 5{,}228-row gate left it. The head is not the
+bottleneck either: on the same features, per-dimension
+standardization costs .07 of English external AUC (the raw
+activation scale is informative), an elastic-net head is a wash
+(internal $+$.008, external $-$.007), and non-linear heads are
+clearly worse (256-unit MLP .702, PCA-256 $+$ gradient-boosted trees
+.715, vs.\ .771). Nor are several heads: a three-way task-type
+router trained on the same features is 97\% accurate, yet no
+family-specialized head beats the single head on its own family
+(facts .846 vs.\ .847, reasoning .761 vs.\ .766, chat .672 vs.\
+.720), and the routed mixture is flat-to-negative externally (SD-QA
+$-$.033 [$-$.060,\,$-$.007]). What the commit-chunk state encodes
+about the coming answer is extracted by one linear read; the
+remaining headroom lies in \emph{what} is read --- later into the
+answer, other layers, or a second signal family such as verbalized
+self-evaluation (Table~\ref{tab:rtjfusion}) --- not in how. The
+talker's own local floor is lower
 in-regime (frozen .483$\to$.431 under the official serving
 configuration; the inherited-defaults harness measured .371, and the
 $\approx$one-third-temperature / $\approx$8-point decomposition
@@ -1452,8 +1538,47 @@ from Reasoning-zh) continues the $\approx{+}.02$-per-doubling external
 trend to \textbf{.736} while internal stays flat (.834) --- and the
 Mandarin slice moves the axis English data never touched, Reasoning-zh
 .606$\to$.659 ($\Delta$ vs.\ conc-2310 $+$.169 [$+$.085,$+$.251]; the
-deployed official-configuration merge reads the same pool at .605,
-Table~\ref{tab:native-auc}).
+deployed official-configuration merge reads the same pool at .605
+with turn-based labels and .621 with the deployed native labels,
+Table~\ref{tab:native-auc}). Two caveats on reading this curve: its
+six points are the project's chronological accumulation, each step
+adding new query families, coverage, or a serving-configuration
+change, not repeated random subsamples of the final set, so it
+evidences that added \emph{coverage} transfers, not that another
+random doubling of the same families would return $+$.02; and the
+internal/English-external plateau against the turn-based reference
+(.771) is an empirical baseline at $n{\approx}200$--250 per pool,
+not a ceiling.
+
+\paragraph{Ceiling, stability, and the pre-answer read.} Three
+diagnostics on the deployed 5{,}228-row gate. (i)~\emph{Ceiling.} A
+pool-prior scorer (each query scored by its training pool's
+out-of-fold failure rate) reaches AUC .786 against the probe's .848 on
+the training out-of-fold scores, and .767 against .876 on frozen
+test; AUC restricted to same-pool pairs is .743 (train) and .820
+(test). Per-question discrimination is thus $+$.06--.11 of AUC on
+top of the type prior, the same decomposition as the $n{=}600$ audit
+of Section~\ref{sec:audit}; at a 30\% budget the prior alone recovers
+.475 failure recall against the probe's .506 (random .299). The
+external pools, each a single source, measure the within-pool
+component directly (.70--.81, Table~\ref{tab:native-auc}).
+(ii)~\emph{Stability.} An independent second native pass over frozen
+test (deployed sampling, $T{=}0.7$, its own judged label) changes 98\%
+of answer texts and flips 14\% of native labels, yet the read at the
+commit chunk barely moves: feature cosine .95, score correlation .95,
+and the tier decisions agree on 91--94\% of queries. Each run's
+features predict the \emph{other} run's outcome about as well as
+their own (.848/.887 vs.\ .876/.872), so the probe reads a property
+of the question in context rather than the fate of one sampled
+answer; against the 204 queries whose two outcomes agree, AUC is
+.91--.93, which bounds the single-sample label noise in the reported
+numbers. (iii)~\emph{Pre-answer read.} The same layer-22 read taken
+before the onset chunk's generate call (no answer tokens in the tail),
+scored by the deployed head without refitting, gives AUC .861/.837
+against the two label sets, .011--.015 below the deployed read; the
+first $\approx$8 answer tokens are worth about one AUC point, and the
+pre-answer variant needs its own operating points (the deployed
+quantiles fire 0/1/20\% on it).
 
 \paragraph{Live validation.} Full live runs on frozen test-240 (real
 raw-audio ASR uplink, real expert, wait paced at one chunk per second)

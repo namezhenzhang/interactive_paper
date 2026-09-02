@@ -1,6 +1,9 @@
 \section{Results}
 \label{sec:results}
 
+% Main results table (tab:transfer) is declared in signal.tex so it
+% floats to an early page.
+
 \subsection{Live escalation}
 \label{sec:live}
 \label{sec:liveloop}
@@ -19,10 +22,14 @@ rendering destroys the symbolic input before the model receives it.
 Accuracy rises monotonically,
 $\mathbf{42.2\% \to 52.8\% \to 59.2\% \to 63.3\%}$ at 0/14/31/57\%
 escalation, and every tier's gain is significant (paired bootstrap;
-Figure~\ref{fig:dualview}). The gate also exceeds matched-rate random
+Table~\ref{tab:transfer}, Figure~\ref{fig:dualview}). The gate also
+exceeds matched-rate random
 escalation at every tier: by 7.2--9.4 points on deployed-channel
 accuracy, and by 5.3--8.3 points when the relay channel is factored
 out (Figure~\ref{fig:dualview}).
+
+% fig:dualview is declared at the end of Section 4 so it floats
+% onto the page where these results are discussed.
 
 A measured always-escalate arm reaches 66.5\%. The gain from 57\% to
 100\% escalation is small because the expert sees the model's own
