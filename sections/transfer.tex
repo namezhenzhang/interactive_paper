@@ -1,4 +1,4 @@
-\section{Frozen Transfer to Public Speech Benchmarks}
+\subsection{Transfer to public speech benchmarks}
 \label{sec:transfer}
 \label{sec:transfer-neg}
 
@@ -13,7 +13,7 @@ set of \citealp{nachmani2024spoken}), SD-QA (real dialectal human
 speech) \citep{faisal2021sdqa}, and VoiceBench AlpacaEval
 \citep{chen2024voicebench,taori2023alpaca}. All audio is the
 benchmarks' official pre-rendered audio; no evaluation query is used to
-fit the probe. The only per-pool adjustment is \emph{label-free}: tier
+fit the probe. The only per-pool adjustment is label-free: tier
 thresholds are quantiles of that pool's score distribution, requiring
 no correctness labels or judge calls. This controls the call budget but
 cannot improve ranking. A single absolute threshold also beats

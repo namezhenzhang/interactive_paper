@@ -1,9 +1,9 @@
-\section{The Read Arrives Before Response Commitment}
+\subsection{Decision timing and escalation budget}
 \label{sec:system}
 
 \paragraph{Scoring latency.}
 The gate is a linear read on L22 states the forward pass already
-computes --- a 4096-d dot product per position, over one position
+computes: a 4096-d dot product per position, over one position
 (mechanistic probe) or three (the deployed probe adds two running
 means at no added scoring latency; Appendix~\ref{app:signal}).
 On an H100, measured from prefill start with CUDA synchronization, the
@@ -29,7 +29,7 @@ oracle, as the shortcut audit predicts. Its advantage appears under
 transfer, where pool identity stops being sufficient
 (\S\ref{sec:audit}).
 
-The gate is fit to \emph{local failure}, not expert benefit: a benefit
+The gate is fit to local failure, not expert benefit: a benefit
 label would specialize the ranking to the current expert. The frozen
 scores remain useful under the stricter benefit label, but pools with
 little expert headroom remain a system-level limit

@@ -1,16 +1,20 @@
-\section{A Transferable Competence Read Survives Mid-Network}
+\section{Experiments}
+\label{sec:experiments}
 \label{sec:signal}
 
-\subsection{In-distribution accuracy hides a query-type shortcut}
+\subsection{Signal comparison and the query-type shortcut}
 \label{sec:audit}
 
 Table~\ref{tab:signals} compares the candidate signals on
 MiniCPM-o~4.5. In distribution the final-layer probe looks healthy at
-AUC 0.822 --- but that number is mostly a \emph{query-type} shortcut.
+AUC 0.822, but that number is mostly a query-type shortcut.
 The same hidden state all but names which pool a query came from, a
 pool-identity oracle alone recovers most of the probe's
 in-distribution margin. Appending true pool labels to the probe's
-features adds nothing because pool identity is already encoded. We
+features adds nothing because pool identity is already encoded. The
+decomposition holds at scale: on the deployed 5{,}228-row native gate
+the pool prior reaches .786 against the probe's .848, and same-pool
+AUC is .743 (Appendix~\ref{app:native}). We
 therefore treat leave-one-pool-out (LOPO) transfer as the primary
 metric. With text input, the final-layer read falls to AUC 0.372 on
 held-out math under LOPO. When the trap pool is held out, its mean failure score is 0.232
@@ -22,16 +26,16 @@ little improvement from substantially more data
 in-distribution routing accuracy alone cannot establish instance-level
 transfer.
 
-Verbalized self-assessment transfers differently. Asked \emph{before}
+Verbalized self-assessment transfers differently. Asked before
 answering, $\ptrue$ catches exactly the trap pool the probe misses,
-scoring it 0.945. But timing is everything: asked \emph{after}
+scoring it 0.945. But timing is everything: asked after
 drafting, the model endorses its own confident-wrong answer and the
 signal inverts. Post-draft $\ptrue$ is the strongest single readout in
 distribution, at 0.899, but it no longer provides a pre-answer routing
 signal.
 
 
-\subsection{Late-layer brittleness appears on text input in duplex checkpoints}
+\subsection{Layer and position sweep}
 \label{sec:duplex}
 
 The matched-pair pattern ties the failure to the duplex checkpoints
@@ -58,8 +62,8 @@ LOPO math. We use L22 because one read point must remain robust for
 shifted text queries and support text-to-speech transfer, not because
 the final-layer signal is absent on the model's native audio input.
 
-The sweep establishes \emph{where} the transferable read survives, not
-\emph{why} it weakens late. Direct tests do not support the simple
+The sweep establishes where the transferable read survives, not
+why it weakens late. Direct tests do not support the simple
 hypothesis that turn-control state takes over the last-token
 representation: the layer at which performance drops does not move in
 speak mode, and the inverting probe direction aligns with neither the
@@ -86,7 +90,7 @@ AUC 0.70--0.79 from a 600-query calibration set
   \label{fig:layersweep}
 \end{figure}
 
-\subsection{Text-calibrated reads transfer to speech in end-to-end models}
+\subsection{Modality transfer}
 \label{sec:xmodal}
 
 Probes trained on text hidden states and scored on speech-input hidden
@@ -94,16 +98,16 @@ states locate where the representation becomes modality-shared: early
 layers are modality-specific (0.54--0.60), and from $\sim$50\% depth
 text$\to$audio transfer plateaus at 0.82--0.87 (0.855 at the deployed
 L22). This replicates on MiniCPM-o~2.6 and cross-family on
-Qwen2.5-Omni. The decisive control is \textbf{Freeze-Omni}: identical
-frozen LLM weights with audio attached by an adapter --- and
+Qwen2.5-Omni. The decisive control is Freeze-Omni: identical
+frozen LLM weights with audio attached by an adapter, and
 cross-modal transfer remains at 0.52--0.60. This comparison supports a
 narrow operational rule: text calibration transfers in the
 end-to-end speech models tested here, but not in the adapter-attached
 control. Verbalized introspection shows the complementary failure: on audio input,
 pre-answer $\ptrue$ collapses on both MiniCPM duplex generations while
 both non-duplex controls stay intact; controlled arms show the verbal
-self-check is sensitive to the text-token pathway --- duplicating the
-question as text restores it --- while a linear probe remains usable
+self-check is sensitive to the text-token pathway (duplicating the
+question as text restores it), while a linear probe remains usable
 on the same forward pass (Appendix~\ref{app:signal}). The restored
 self-check is additive with the probe: stacking the two lifts the
 internal test AUC 0.836$\to$0.862 (CI excludes zero) at the cost of

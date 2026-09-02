@@ -1,4 +1,4 @@
-\section{Live End-of-Turn Escalation}
+\subsection{Live escalation}
 \label{sec:live}
 \label{sec:liveloop}
 \label{sec:livecurve}
@@ -62,11 +62,18 @@ results remain exploratory (Appendix~\ref{app:duplexval}). Under the
 model's native full-duplex head, the read moves to the head's own
 listen$\to$speak commit point. Refitting the same features in that
 regime, on a widened 5{,}228-row calibration merge under the official
-serving configuration, yields AUC 0.844 internally and 0.770 across
-the four English external QA pools (0.605 on the Mandarin pool). A
-native outcome re-mix beats matched-rate random on all five English
-pools at both deployed tiers; the Mandarin pool separates on AUC but
-the global English thresholds rarely fire there. A full native live
+serving configuration and with labels judged on the same native
+answers, yields AUC 0.876 internally (0.843 against the earlier
+harness labels) and 0.771 across the four English external QA pools
+(0.621 on the Mandarin reasoning pool; a 1{,}500-question Mandarin
+held-out set of facts, knowledge MC, and causal commonsense reads at
+0.811, so the gap is multi-step reasoning, not language). A native
+outcome re-mix beats
+matched-rate random on all five English pools at both deployed
+tiers; the Mandarin pool needs its own operating point (tier
+thresholds quantiled per language on the training rows), after
+which it fires at nominal rates and beats matched-rate random at
+the two lower tiers. A full native live
 run on the internal 240 queries, under the earlier inherited serving
 configuration, improves
 accuracy from 0.371 to 0.537 at 45\% escalation, below the 0.596 re-mix
