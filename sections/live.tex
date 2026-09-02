@@ -37,7 +37,7 @@ complete turn-based loop with audio input. The primary accuracy sweep
 retains the model's output as text; a separate TTS-on run of the
 balanced tier verifies that enabling speech synthesis leaves all
 84/240 gate decisions unchanged and measures speech onset. We score
-\emph{deployed-channel answer accuracy}: correctness of the relayed
+deployed-channel answer accuracy: correctness of the relayed
 content after the system path. Headline numbers use a pre-registered
 input filter that removes 21 formula-LaTeX queries and one broken
 recording, because the speech rendering destroys the symbolic input
@@ -58,9 +58,10 @@ rests on a smaller difference. Full tables, latency profiles, and
 boundary cases are in Appendix~\ref{app:livedetail}.
 
 \paragraph{Serving-regime checks.}
-A talker-on replay leaves the frozen ranking nearly unchanged
-(AUC 0.871/0.856 versus 0.866 headless). A teacher-forced concurrent
-interleave is less stable and requires an in-regime refit; its external
+Replaying the loop with the talker enabled leaves the frozen ranking
+nearly unchanged (AUC 0.871/0.856 versus 0.866 with the talker
+disabled). A teacher-forced concurrent-prefill variant is less stable
+and requires an in-regime refit; its external
 results remain exploratory (Appendix~\ref{app:duplexval}). Under the
 model's native full-duplex head, the read moves to the head's own
 listen$\to$speak commit point. Refitting the same features in that
@@ -70,17 +71,17 @@ answers, yields AUC 0.876 internally (0.843 against the earlier
 harness labels) and 0.771 across the four English external QA pools
 (0.621 on the Mandarin reasoning pool; a 1{,}500-question Mandarin
 held-out set of facts, knowledge MC, and causal commonsense reads at
-0.811, so the gap is multi-step reasoning, not language). A native
-outcome re-mix beats
+0.811, so the gap is multi-step reasoning, not language). Re-mixing the
+native gate's decisions with cached expert outcomes beats
 matched-rate random on all five English pools at both deployed
 tiers; the Mandarin pool needs its own operating point (tier
 thresholds quantiled per language on the training rows), after
-which it fires at nominal rates and beats matched-rate random at
-the two lower tiers. A full native live
+which it escalates at the nominal rates and beats matched-rate
+random at the two lower tiers. A full native live
 run on the internal 240 queries, under the earlier inherited serving
 configuration, improves
-accuracy from 0.371 to 0.537 at 45\% escalation, below the 0.596 re-mix
-prediction because relaying the returned answer is lossy. These checks
+accuracy from 0.371 to 0.537 at 45\% escalation, below the re-mix
+prediction of 0.596 because relaying the returned answer is lossy. These checks
 support the ranking beyond the primary turn-based loop, but they also
 show that read points, probe weights, and thresholds must be calibrated
 for the serving regime (Appendix~\ref{app:native}).

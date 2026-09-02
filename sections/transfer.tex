@@ -2,7 +2,8 @@
 \label{sec:transfer}
 \label{sec:transfer-neg}
 
-The query-type audit makes external transfer necessary. We freeze the
+The shortcut analysis of \S\ref{sec:audit} makes external transfer
+necessary. We freeze the
 probe weights, feature set, and layer selected on the internal
 calibration mix, then run the live loop of \S\ref{sec:live} on six
 public speech benchmarks with audio input and text output: Speech
@@ -17,8 +18,8 @@ fit the probe. The only per-pool adjustment is label-free: tier
 thresholds are quantiles of that pool's score distribution, requiring
 no correctness labels or judge calls. This controls the call budget but
 cannot improve ranking. A single absolute threshold also beats
-matched-rate random on four of five QA pools, but its fire rate varies
-from 2\% to 48\% (Appendix~\ref{app:fixedthr}). We use each benchmark's
+matched-rate random on four of five QA pools, but its escalation rate
+varies from 2\% to 48\% (Appendix~\ref{app:fixedthr}). We use each benchmark's
 official judge when available and verify that the local-only controls
 are on the published scale.
 
@@ -30,8 +31,8 @@ are on the published scale.
 measured post-relay answer accuracy (\%) from the audio-input/text-output
 live loop; the probe is fixed and thresholds use label-free per-pool
 quantiles. The bottom block applies the same recipe to
-NemotronLabs-VoiceChat-11B in an offline re-mix
-(Appendix~\ref{app:nvda}). $\Delta$ is the average gain over
+NemotronLabs-VoiceChat-11B offline, re-mixing cached local and expert
+outcomes (Appendix~\ref{app:nvda}). $\Delta$ is the average gain over
 always-local. AlpacaEval, reported separately on its 1--5 scale,
 changes from 3.99 to 4.35 on MiniCPM but does not beat matched-rate
 random; the second family changes from 3.55 to 4.46 versus 4.23 for
