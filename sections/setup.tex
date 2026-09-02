@@ -63,3 +63,22 @@ For the live system, the key comparison is against matched-rate random
 escalation: an improvement over always-local operation can come from
 the expert alone, while an improvement over random at the same call
 rate measures the value of the gate's ranking.
+
+\subsection{Live loop and escalation path}
+\label{sec:liveproto}
+\label{sec:inject}
+The live loop is turn-based: audio streams in 1\,s chunks, and the
+talker speaks only after the user's turn ends; the model's native
+listen/speak head is not engaged, which isolates competence handoff
+from turn-taking (native-head validations are reported in
+\S\ref{sec:live} and Appendix~\ref{app:native}). The loop uses the
+deployed three-position probe of \S\ref{sec:signals} (frozen-test AUC
+0.879). Escalation runs in four tiers from conservative to
+aggressive; each tier's threshold is a quantile of the probe's score,
+so a tier sets the call budget without correctness labels. If a turn
+escalates, the talker first produces a short stall phrase; the
+model's own transcription of the query is sent to \texttt{gpt-5.5},
+and the returned answer is injected as context for the talker to
+relay. The expert request runs asynchronously. Partial-query
+prefetch, expert reasoning effort, and injection controls are in
+Appendix~\ref{app:livedetail}.
